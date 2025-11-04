@@ -5,7 +5,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // middleware
-app.use(cors());
+app.use(cors({origin: ["http://localhost:5173"], credentials: true}));
 app.use(express.json())
 
 // smartdbUser
@@ -120,17 +120,37 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/product/bids/:productId', async (req, res) => {
-      const productId = req.params.productId;
-      const query = {product: productId}
-      const cursor = bidsCollection.find(query).sort({bid_price: -1})
-      const result = await cursor.toArray();
-      res.send(result)
-    })
+   app.get('/products/bids/:id', async (req, res) => {
+    const productId = req.params.id;
+    const query = { product: productId };
+    const cursor = bidsCollection.find(query).sort({ bid_price: -1 });
+    const result = await cursor.toArray();
+    res.send(result);
+});
+
+app.get('/bids', async(req, res) => {
+
+  const query = {};
+  if(query.email){
+    query.buyer_email = email;
+  }
+  const cursor = bidsCollection.find();
+  const result = await cursor.toArray();
+  res.send(result);
+})
 
     app.post('/bids', async (req, res) => {
       const newBid = req.body;
       const result = await bidsCollection.insertOne(newBid);
+      res.send(result);
+    })
+
+    app.delete('/bids/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id)}
+      const result = await bidsCollection.deleteOne(query);
+      // console.log(result);
+      
       res.send(result);
     })
 
